@@ -53,6 +53,27 @@ command_default()
   subcommand muse --confirm;
 }
 
+command_listen()
+{
+  set_args "--help" "$@";
+  eval "$get_args";
+  vlc mp3/* &
+}
+
+command_move_files()
+{
+  set_args "--help" "$@";
+  eval "$get_args";
+
+  ensure_directory mp3;
+  ensure_directory pdf;
+  ensure_directory mscz;
+  2>/dev/null mv -v *".mp3" mp3/ || echos "No mp3 files";
+  2>/dev/null mv -v *".pdf" pdf/ || echos "No pdf files";
+  2>/dev/null mv -v *".mscz" mscz/ || echos "No mscz files";
+  echok "Moved files";
+}
+
 command_muse()
 {
   set_args "--confirm --help" "$@";
@@ -72,20 +93,6 @@ command_muse()
   :;
 }
 
-command_move_files()
-{
-  set_args "--help" "$@";
-  eval "$get_args";
-
-  ensure_directory mp3;
-  ensure_directory pdf;
-  ensure_directory mscz;
-  2>/dev/null mv -v *".mp3" mp3/ || echos "No mp3 files";
-  2>/dev/null mv -v *".pdf" pdf/ || echos "No pdf files";
-  2>/dev/null mv -v *".mscz" mscz/ || echos "No mscz files";
-  echok "Moved files";
-}
-
 # ╭──────────────────────╮
 # │ 🖩 Utils              │
 # ╰──────────────────────╯
@@ -95,11 +102,12 @@ command_move_files()
 # ╭──────────────────────╮
 # │ 🖹 Help strings       │
 # ╰──────────────────────╯
+declare -r listen_help_string='Listen to MP3 files';
+declare -r move_files_help_string='Move PDF/MP3 files
+Moves files into the subdirectories "pdf/" and "mp3/"';
 declare -r muse_help_string='Run MuseScore
 OPTIONS
   --confirm: Confirm before running';
-declare -r move_files_help_string='Move PDF/MP3 files
-Moves files into the subdirectories "pdf/" and "mp3/"';
 # ╭──────────────────────╮
 # │ ⚙ Boilerplate        │
 # ╰──────────────────────╯
