@@ -62,16 +62,20 @@ command_listen()
 
 command_move_files()
 {
-  set_args "--help" "$@";
+  set_args "--name=: --help" "$@";
   eval "$get_args";
 
   ensure_directory mp3;
   ensure_directory pdf;
   ensure_directory mscz;
-  2>/dev/null mv -v *".mp3" mp3/ || echos "No mp3 files";
-  2>/dev/null mv -v *".pdf" pdf/ || echos "No pdf files";
-  2>/dev/null mv -v *".mscz" mscz/ || echos "No mscz files";
-  echok "Moved files";
+
+  if [[ "$name" != ":" ]]; then
+    move_by_name "$name";
+  else
+    2>/dev/null mv -v *".mp3" mp3/ || echos "No mp3 files";
+    2>/dev/null mv -v *".pdf" pdf/ || echos "No pdf files";
+    2>/dev/null mv -v *".mscz" mscz/ || echos "No mscz files";
+  fi
 }
 
 command_muse()
@@ -99,12 +103,40 @@ command_muse()
 # ╭──────────────────────╮
 # │ 𝑓 Functional         │
 # ╰──────────────────────╯
+
+# Move mscz/pdf/mp3 files containing $1 into their respective directory
+move_by_name()
+{
+  declare -a files=( *${1:-$FUNCNAME: Missing argument}* );
+  echoi "$(print_array "files")";
+  if [[ "${files}" == "*${1}*" ]]; then
+    echoe "No files found";
+    return 0;
+  fi
+  declare choice="n";
+  boolean_prompt "Move files?" choice;
+  if [[ "$choice" == "n" ]]; then return 0; fi
+  declare extension="";
+  for file in "${files[@]}"; do
+    extentsion="${file##*.}";
+    echoi ".${extentsion@Q}";
+    if [[ "$extentsion" != "mscz" && "$extentsion" != "pdf" && "$extentsion" != "mp3" ]]; then
+      echos "${file@Q}";
+      continue;
+    fi
+    mv -v "$file" "${extentsion}/";
+  done
+}
+
 # ╭──────────────────────╮
 # │ 🖹 Help strings       │
 # ╰──────────────────────╯
 declare -r listen_help_string='Listen to MP3 files';
 declare -r move_files_help_string='Move PDF/MP3 files
-Moves files into the subdirectories "pdf/" and "mp3/"';
+DESCRIPTION
+  Moves files into the subdirectories "pdf/" and "mp3/"
+OPTIONS
+  --name=: Search string (exact matching substring)';
 declare -r muse_help_string='Run MuseScore
 OPTIONS
   --confirm: Confirm before running';
