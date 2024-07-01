@@ -19,7 +19,7 @@ source "$dotfiles/scripts/boilerplate.sh" "${BASH_SOURCE[0]}" "$@";
 # ╭──────────────────────╮
 # │ 🛠Configuration      │
 # ╰──────────────────────╯
-_run_config["versioning"]=1;
+_run_config["versioning"]=0;
 _run_config["log_loads"]=0;
 #_run_config["error_frames"]=2;
 # ╭──────────────────────╮
