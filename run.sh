@@ -107,24 +107,39 @@ command_muse()
 # Move mscz/pdf/mp3 files containing $1 into their respective directory
 move_by_name()
 {
-  declare -a files=( *${1:-$FUNCNAME: Missing argument}* );
+  declare -ar files=( *${1:-$FUNCNAME: Missing argument}* );
+  declare -ar pdf_files=( *${1}*".pdf" );
+  declare pdf_directory="pdf/";
   echoi "$(print_array "files")";
   if [[ "${files}" == "*${1}*" ]]; then
     echoe "No files found";
     return 0;
   fi
+
+  # When there are multiple PDFs, create a directory
+  if (( ${#pdf_files[@]} > 1 )); then
+    pdf_directory+="${1}";
+    ensure_directory "$pdf_directory";
+    echoi "${pdf_directory@A}";
+  fi
+
+  declare -A directories=();
+  directories["mp3"]="mp3/";
+  directories["pdf"]="$pdf_directory";
+  directories["mscz"]="mscz/";
+
   declare choice="n";
   boolean_prompt "Move files?" choice;
   if [[ "$choice" == "n" ]]; then return 0; fi
   declare extension="";
   for file in "${files[@]}"; do
     extentsion="${file##*.}";
-    echoi ".${extentsion@Q}";
+    echoi "${extentsion@A}";
     if [[ "$extentsion" != "mscz" && "$extentsion" != "pdf" && "$extentsion" != "mp3" ]]; then
-      echos "${file@Q}";
+      echos "${file@A}";
       continue;
     fi
-    mv -v "$file" "${extentsion}/";
+    mv -v "$file" "${directories[$extentsion]}";
   done
 }
 
@@ -134,9 +149,12 @@ move_by_name()
 declare -r listen_help_string='Listen to MP3 files';
 declare -r move_files_help_string='Move PDF/MP3 files
 DESCRIPTION
-  Moves files into the subdirectories "pdf/" and "mp3/"
+  Moves files into the subdirectories "mscz/", "pdf/" and "mp3/".
+  When there are matching multple pdfs, create a subdirectory below pdf/ with
+  the name --name.
 OPTIONS
-  --name=: Search string (exact matching substring)';
+  --name=: Search string (exact matching substring). Becomes the name of the pdf
+           directory, so choose the whole score name in this case.';
 declare -r muse_help_string='Run MuseScore
 OPTIONS
   --confirm: Confirm before running';
